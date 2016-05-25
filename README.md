@@ -1,0 +1,2 @@
+This project is basically a REST endpoint to read a Twitter user's public timeline. I created it basically to extract
+tweets so I can use them later to play around with them in https://github.com/franDayz/tweetcategory
