@@ -2,3 +2,4 @@
 .mvn/
 target/
 timeline.iml
+src/main/resources
