@@ -25,10 +25,10 @@ public class TimeLineController {
     }
 
     @RequestMapping(method = RequestMethod.GET, value = "/timeline")
-    public ResponseEntity<List<TweetView>> getTimeLine(
+    public ResponseEntity<List<TweetDocument>> getTimeLine(
             @RequestParam(required = true) String user) {
 
-        List<TweetView> tweets = timeLineService.getTimeLine(user);
+        List<TweetDocument> tweets = timeLineService.getTimeLine(user);
         return ResponseEntity.ok(tweets);
     }
 
@@ -46,7 +46,7 @@ public class TimeLineController {
         return sseEmitter;
     }
 
-    private void sendTweet(SseEmitter sseEmitter, TweetView tweet) {
+    private void sendTweet(SseEmitter sseEmitter, TweetDocument tweet) {
         try {
             sseEmitter.send(tweet);
         } catch (IOException e) {
