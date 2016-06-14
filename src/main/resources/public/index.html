@@ -1,0 +1,18 @@
+<html>
+    <body>
+        <label for="user">User:</label>
+        <input type="text" id="user" name="user">
+        <button onclick="getTimeLine()">Get timeline</button>
+    </body>
+</html>
+
+<script language="JavaScript">
+    function getTimeLine() {
+        var user = document.getElementById("user").value;
+        var source = new EventSource("/timeline/async?user=" + user);
+        source.onmessage = function (event) {
+            var tweet = JSON.parse(event.data);
+            console.info(tweet);
+        };
+    }
+</script>
