@@ -10,11 +10,13 @@ import javax.inject.Inject;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.CompletableFuture;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 import rx.Observable;
+import rx.subjects.ReplaySubject;
 
 /**
  * Created by frandayz on 09.01.16.
@@ -49,16 +51,35 @@ public class TimeLineService {
     }
 
     public Observable<TweetDocument> getTimeLineAsync(String userId) {
-        return Observable.<TweetDocument>create(s -> {
-            List<Tweet> tweets = twitter.timelineOperations()
-                    .getUserTimeline(userId, 10);
+        ReplaySubject<TweetDocument> subject = ReplaySubject.create();
 
-            tweets.stream()
-                    .map(this::buildTweetDocument)
-                    .forEach(s::onNext);
+        List<CompletableFuture<TweetDocument>> futures =
+                twitter.timelineOperations().getUserTimeline(userId, 200)
+                .stream()
+                        .map(this::buildTweetDocumentAync)
+                        .collect(Collectors.toList());
 
-            s.onCompleted();
-        });
+        futures.forEach(future ->
+                future.thenRun(() -> {
+                    try {
+                        subject.onNext(future.get());
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                }));
+
+        CompletableFuture[] futuresArr = futures.toArray(
+                new CompletableFuture[futures.size()]);
+
+        CompletableFuture
+                .allOf(futuresArr)
+                .thenRun(subject::onCompleted);
+
+        return subject;
+    }
+
+    private CompletableFuture<TweetDocument> buildTweetDocumentAync(Tweet tweet) {
+        return CompletableFuture.supplyAsync(() -> buildTweetDocument(tweet));
     }
 
     private TweetDocument buildTweetDocument(Tweet tweet) {
