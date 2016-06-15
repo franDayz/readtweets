@@ -53,9 +53,9 @@ public class TimeLineService {
     public Observable<TweetDocument> getTimeLineAsync(String userId) {
         ReplaySubject<TweetDocument> subject = ReplaySubject.create();
 
-        List<CompletableFuture<TweetDocument>> futures =
-                twitter.timelineOperations().getUserTimeline(userId, 200)
-                .stream()
+        List<Tweet> tweets = twitter.timelineOperations().getUserTimeline(userId, 200);
+
+        List<CompletableFuture<TweetDocument>> futures = tweets.stream()
                         .map(this::buildTweetDocumentAync)
                         .collect(Collectors.toList());
 

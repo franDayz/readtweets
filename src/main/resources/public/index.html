@@ -1,18 +1,31 @@
 <html>
+    <head>
+        <script src="http://underscorejs.org/underscore.js"></script>
+        <script src="https://code.jquery.com/jquery-1.11.3.js"></script>
+    </head>
     <body>
         <label for="user">User:</label>
         <input type="text" id="user" name="user">
         <button onclick="getTimeLine()">Get timeline</button>
+        <div id="content"></div>
     </body>
 </html>
 
 <script language="JavaScript">
     function getTimeLine() {
-        var user = document.getElementById("user").value;
+        var user = $("#user").val();
         var source = new EventSource("/timeline/async?user=" + user);
         source.onmessage = function (event) {
             var tweet = JSON.parse(event.data);
-            console.info(tweet);
+            var paragraph = _.reduce(tweet.lemmas, function(memo, lemma){
+                return memo + ", " + lemma;
+            }, "");
+            $( "#content" ).append( "<h4>" + tweet.user + " " + tweet.created + "</4>" );
+            $( "#content" ).append( "<p>" + paragraph + "</p>" );
+            // to avoid subscribing again
+            if ($("p").length > 200) {
+                source.close();
+            }
         };
     }
 </script>
