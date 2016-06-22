@@ -24,7 +24,7 @@ public class ScrapperService {
 
     public Optional<String> scrap(String html) {
         Document doc = Jsoup.parse(html);
-        Elements paragraphs = doc.select("body");
+        Elements paragraphs = doc.select("p");
         String text = paragraphs.text();
 
         if (!StringUtils.isEmpty(text)) {

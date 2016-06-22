@@ -21,13 +21,13 @@ public class ScrapperServiceTest {
             new ScrapperService(new HttpService());
 
     @Test
-    public void shouldExtractAllText_GivenHtmlBody() {
+    public void shouldExtractAllTextFromParagraphs_GivenHtmlBody() {
         String html = "" +
                 "<html>" +
                 "<body>" +
                 "<p>Text1</p>" +
                 "<p><span>Text2</span></p>" +
-                "<div>Text3</div>" +
+                "<p>Text3</p>" +
                 "</body>" +
                 "</html>";
 
