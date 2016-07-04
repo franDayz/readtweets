@@ -14,7 +14,7 @@ import java.util.List;
 @Builder
 public class TweetDocument {
 
-    private Long id;
+    private String id;
     private String user;
     private String text;
     private Date created;

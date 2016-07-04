@@ -5,18 +5,19 @@ import com.example.twitter.scrapper.ScrapperService;
 import org.springframework.social.twitter.api.Tweet;
 import org.springframework.social.twitter.api.Twitter;
 import org.springframework.stereotype.Service;
+import rx.Observable;
+import rx.subjects.ReplaySubject;
 
 import javax.inject.Inject;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.Executor;
+import java.util.concurrent.Executors;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
-
-import rx.Observable;
-import rx.subjects.ReplaySubject;
 
 /**
  * Created by frandayz on 09.01.16.
@@ -56,15 +57,15 @@ public class TimeLineService {
         List<Tweet> tweets = twitter.timelineOperations().getUserTimeline(userId, 200);
 
         List<CompletableFuture<TweetDocument>> futures = tweets.stream()
-                        .map(this::buildTweetDocumentAync)
-                        .collect(Collectors.toList());
+                .map(this::buildTweetDocumentAync)
+                .collect(Collectors.toList());
 
         futures.forEach(future ->
                 future.thenRun(() -> {
                     try {
                         subject.onNext(future.get());
                     } catch (Exception e) {
-                        e.printStackTrace();
+                        subject.onError(e);
                     }
                 }));
 
@@ -79,7 +80,11 @@ public class TimeLineService {
     }
 
     private CompletableFuture<TweetDocument> buildTweetDocumentAync(Tweet tweet) {
-        return CompletableFuture.supplyAsync(() -> buildTweetDocument(tweet));
+        Executor singleThreadExecutor = Executors.newSingleThreadExecutor();
+
+        return CompletableFuture.supplyAsync(
+                () -> buildTweetDocument(tweet),
+                singleThreadExecutor);
     }
 
     private TweetDocument buildTweetDocument(Tweet tweet) {
@@ -92,7 +97,7 @@ public class TimeLineService {
                 .orElse(new ArrayList<>());
 
         return TweetDocument.builder()
-                .id(tweet.getId())
+                .id(tweet.getIdStr())
                 .user(tweet.getFromUser())
                 .text(tweet.getText())
                 .lemmas(lemmas)
